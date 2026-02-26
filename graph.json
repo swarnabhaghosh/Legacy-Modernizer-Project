@@ -1,0 +1,8 @@
+{
+    "login": [
+        "validateUser",
+        "connectDB"
+    ],
+    "validateUser": [],
+    "connectDB": []
+}
