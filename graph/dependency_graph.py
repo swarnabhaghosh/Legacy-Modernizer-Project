@@ -15,8 +15,9 @@ def build_graph(repo_path):
                 tree = javalang.parse.parse(code)
                 for _, node in tree:
                     if isinstance(node, javalang.tree.MethodDeclaration):
-                        methods[node.name] = node
-                        graph.add_node(node.name)
+                        unique_name = f"{file}:{node.name}"
+                        methods[unique_name] = node
+                        graph.add_node(unique_name)
 
     for name, node in methods.items():
         for _, child in node:

@@ -2,20 +2,32 @@ import os
 import javalang
 
 def parse_repo(repo_path):
-    all_methods = {}
+    method_map = {}
+
     for root, dirs, files in os.walk(repo_path):
         for file in files:
             if file.endswith(".java"):
                 path = os.path.join(root, file)
-                with open(path, "r") as f:
-                    code = f.read()
-                tree = javalang.parse.parse(code)
-                for _, node in tree:
-                    if isinstance(node, javalang.tree.MethodDeclaration):
-                        all_methods[node.name] = path
-    return all_methods
 
-if __name__ == "__main__":
-    repo = "repo"
-    methods = parse_repo(repo)
-    print(methods)
+                with open(path, "r", encoding="utf-8") as f:
+                    code = f.read()
+
+                try:
+                    tree = javalang.parse.parse(code)
+                except:
+                    continue  # skip broken files
+
+                for path_tuple, node in tree:
+                    if isinstance(node, javalang.tree.MethodDeclaration):
+
+                        # Unique identifier (file + method)
+                        unique_name = f"{file}:{node.name}"
+
+                        method_map[unique_name] = {
+                            "file": path,
+                            "method_name": node.name,
+                            "position": node.position,  # line number
+                            "node": node
+                        }
+
+    return method_map
