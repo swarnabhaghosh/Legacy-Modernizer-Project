@@ -1,11 +1,12 @@
-from code_parser import parse_repo
-from dependency_graph import build_graph
+from parser.code_parser import parse_repo
+from graph.dependency_graph import build_graph
 import networkx as nx
 
-repo_path = "repo"
+repo_path = "test_repo"
 
 # Step 1: Parse repo
 method_map = parse_repo(repo_path)
+print("Method Map Content:", method_map)
 
 print("Parsed Methods:")
 for m in method_map:
