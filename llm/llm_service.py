@@ -1,38 +1,21 @@
-# import ollama
-#
-# MODEL_NAME = "deepseek-coder"
-#
-#
-# def generate_code(prompt):
-#     try:
-#         response = ollama.generate(
-#             model=MODEL_NAME,
-#             prompt=prompt,
-#             options={
-#                 "temperature": 0.0,
-#                 "stop": ["```", "Explanation", "Here is", "This Python"]
-#             }
-#         )
-#
-#         return response["response"]
-#
-#     except Exception as e:
-#         return f"LLM Error: {str(e)}"
-
 import ollama
 
 
-def generate_code(prompt, model_name="deepseek-coder"):
+def generate_code(prompt, model_name="codellama:7b"):
     """
-    Sends prompt to Ollama model and returns raw response text.
+    Send prompt to Ollama and return raw response.
     """
 
-    response = ollama.generate(
-        model=model_name,
-        prompt=prompt,
-        options={
-            "temperature": 0.0
-        }
-    )
+    try:
+        response = ollama.generate(
+            model=model_name,
+            prompt=prompt,
+            options={
+                "temperature": 0.0
+            }
+        )
+        return response.get("response", "").strip()
 
-    return response.get("response", "").strip()
+    except Exception as e:
+        print("LLM Error:", e)
+        return ""

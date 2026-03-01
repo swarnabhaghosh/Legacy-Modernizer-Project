@@ -5,32 +5,28 @@ from llm.llm_service import generate_code
 import re
 
 
-# 🔥 Set this after benchmarking
+# Set after benchmarking
 BEST_MODEL = "codellama:7b"
 
 
 def build_prompt(source_lang, target_lang, context):
     return f"""
-You are a strict code translator.
-
-Translate the following {source_lang} class into equivalent {target_lang}.
+Translate this {source_lang} class to {target_lang}.
 
 Rules:
-- Preserve ALL methods.
-- Preserve class structure.
-- Preserve method calls.
-- Do not rename methods.
-- Do not add decorators.
-- Do not simplify logic.
-- Output ONLY raw {target_lang} code.
+1. Preserve all method names exactly.
+2. Preserve method calls exactly.
+3. Do not rename anything.
+4. Do not add decorators.
+5. Do not add comments.
+6. Output only raw {target_lang} code.
 
-Source Code:
 {context}
 """
 
 
 def extract_code(text):
-    match = re.search(r"```python(.*?)```", text, re.DOTALL)
+    match = re.search(r"```(?:python)?(.*?)```", text, re.DOTALL)
     if match:
         return match.group(1).strip()
 
@@ -53,6 +49,11 @@ def run_modernization(repo_path, start_method_id):
         method_map
     )
 
+    total_methods = len(method_map)
+    used_methods = len(related)
+
+    reduction = 100 - (used_methods / total_methods) * 100
+
     prompt = build_prompt("Java", "Python", context)
 
     raw_output = generate_code(prompt, model_name=BEST_MODEL)
@@ -61,15 +62,17 @@ def run_modernization(repo_path, start_method_id):
     return {
         "converted_code": clean_output,
         "related_methods": related,
-        "files_used": files
+        "files_used": files,
+        "context_reduction_percent": round(reduction, 2)
     }
 
 
 if __name__ == "__main__":
 
-    result = run_modernization("test_repo", "Login.java:login")
+    result = run_modernization("test_repo", "UserService.java:login")
 
     print("Related Methods:", result["related_methods"])
     print("Files Used:", result["files_used"])
+    print("Context Reduction:", result["context_reduction_percent"], "%")
     print("\n===== FINAL MODERNIZED CODE =====\n")
     print(result["converted_code"])
