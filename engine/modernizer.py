@@ -1,3 +1,5 @@
+from multiprocessing import context
+
 from parser.code_parser import parse_repo
 from graph.dependency_graph import build_graph
 from optimizer.context_optimizer import build_context
@@ -38,7 +40,7 @@ def extract_code(text):
     return text.strip()
 
 
-def run_modernization(repo_path, start_method_id):
+def run_modernization(repo_path, start_method_id,temperature=0.3):
 
     method_map = parse_repo(repo_path)
     graph = build_graph(repo_path)
@@ -55,21 +57,26 @@ def run_modernization(repo_path, start_method_id):
     reduction = 100 - (used_methods / total_methods) * 100
 
     prompt = build_prompt("Java", "Python", context)
-
-    raw_output = generate_code(prompt, model_name=BEST_MODEL)
+    print("\n===== CONTEXT SENT TO LLM =====\n")
+    print(context)
+    raw_output,latency = generate_code(prompt, model_name=BEST_MODEL,temperature=temperature)
+    
+    print("\n===== RAW LLM OUTPUT =====\n")
+    print(raw_output)
     clean_output = extract_code(raw_output)
 
     return {
         "converted_code": clean_output,
         "related_methods": related,
         "files_used": files,
-        "context_reduction_percent": round(reduction, 2)
+        "context_reduction_percent": round(reduction, 2),
+        "latency_seconds": latency
     }
 
 
 if __name__ == "__main__":
 
-    result = run_modernization("test_repo", "UserService.java:login")
+    result = run_modernization("test_repo", "UserService.java:login",0.3)
 
     print("Related Methods:", result["related_methods"])
     print("Files Used:", result["files_used"])
